@@ -15,14 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     @RequestMapping("/queryUserById")
-    public User queryUserById (String id) {
-
-        System.out.println(id);
+    public User queryUserById (Integer id) {
 
         User user = new User();
-        user.setId(12);
-        System.out.println(user);
-        return new User();
+        user.setId(id);
+        return user;
     }
 }
     
