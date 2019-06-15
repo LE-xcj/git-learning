@@ -17,6 +17,11 @@ public class UserController {
     @RequestMapping("/queryUserById")
     public User queryUserById (String id) {
 
+        System.out.println(id);
+
+        User user = new User();
+        user.setId(12);
+        System.out.println(user);
         return new User();
     }
 }
