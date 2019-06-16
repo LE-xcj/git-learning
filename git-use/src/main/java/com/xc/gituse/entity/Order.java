@@ -3,8 +3,6 @@ package com.xc.gituse.entity;
 import lombok.Data;
 import lombok.ToString;
 
-import javax.persistence.Entity;
-
 /**
  * @author chujian
  * @ClassName Order
@@ -13,7 +11,7 @@ import javax.persistence.Entity;
  */
 @Data
 @ToString
-@Entity
+//@Entity
 public class Order {
     private Integer id;
 

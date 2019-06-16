@@ -3,7 +3,7 @@ package com.xc.gituse.entity;
 import lombok.Data;
 import lombok.ToString;
 
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 /**
  * @author chujian
@@ -14,11 +14,35 @@ import javax.persistence.Entity;
 @Data
 @ToString
 @Entity
+@Table(name = "t_jpa_user", schema = "wheel-making", catalog = "")
 public class User {
+
+    @Id
+    @Column(name = "id")
     private Integer id;
+
+    @Column(name = "name")
     private String name;
-    private int age;
-    private String sex;
+
+    @Column(name = "age")
+    private Integer age;
+
+    @Column(name = "country")
+    private String country;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "rid")
+    private Integer rid;
+
+
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "id", referencedColumnName = "id")
+    private Role role;
 
 }
     
