@@ -5,8 +5,6 @@ import com.xc.gituse.entity.Role;
 import com.xc.gituse.entity.User;
 import com.xc.gituse.entity.vo.UserVO;
 import com.xc.gituse.service.UserService;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.CircleBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IteratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.querydsl.QPageRequest;
-import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.*;
@@ -226,17 +223,45 @@ public class UserServiceImpl implements UserService {
 
                 Predicate[] predicates = list.toArray(arr);
 
+
+                /**
+                 * 其实下面所有的复杂条件拼接都遵循这样的规则，Predicate[]数组表示表中的字段和谓语（in、like、=....）
+                 * criteriaBuilder调用的方法，都会在Predicate[]数组中的表示的字段参数之间添加连词 （in、or、and....）
+                 */
                 if (param.getAge() > 30) {
+
+                    // 在arr所有表示的字段参数中添加and连词
+                    // 结果：user0_.age=40 and (user0_.name like ?)
                     return criteriaBuilder.or(criteriaBuilder.and(list.toArray(arr)));
                 } else if (param.getAge() > 20) {
+
+                    /**
+                     * 添加多一个字段的赛选条件
+                     */
                     Path<String> city = root.get("city");
                     list.add(criteriaBuilder.notLike(city, "%" + param.getCity()));
                     Predicate[] arr2 = new Predicate[3];
-                    arr2[0] = list.get(1);
-                    arr2[1] = list.get(0);
-                    arr2[2] = list.get(2);
+                    arr2[0] = list.get(1);  // arr2[0] = name;
+                    arr2[1] = list.get(0);  // arr2[1] = age
+                    arr2[2] = list.get(2);  // arr2[2] = city
 
-                    return criteriaBuilder.or(criteriaBuilder.and(arr2[1], arr2[2]), arr2[1], criteriaBuilder.and(arr2[0], arr2[1]));
+                    // 这里模拟一个复杂的条件查询
+                    /**
+                     * user0_.age=30 and (user0_.city not like ?) or    第一部分
+                     * user0_.age=30 or     第二部分
+                     * (user0_.name like ?) and user0_.age=30   第三部分
+                     *
+                     * 解析：
+                     *  “user0_.age=30 and (user0_.city not like ?)” : 表示的是：criteriaBuilder.and(arr2[1], arr2[2])这一部分
+                     *  "user0_.age=30"  ： 这是or的第二部分
+                     *  "(user0_.name like ?) and user0_.age=30"   表示第三部分：criteriaBuilder.and(arr2[0], arr2[1])
+                     */
+                    return criteriaBuilder.or(
+                            criteriaBuilder.and(
+                                    arr2[1], arr2[2]),      // or 的第一部分
+                                    arr2[1],                // or 的第二部分
+                                    criteriaBuilder.and(arr2[0], arr2[1])      // or 的第三部分
+                    );
                 }else if (param.getAge() > 10) {
                     return criteriaBuilder.and(predicates);
                 } else {
