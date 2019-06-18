@@ -5,19 +5,22 @@ import com.xc.gituse.entity.Role;
 import com.xc.gituse.entity.User;
 import com.xc.gituse.entity.vo.UserVO;
 import com.xc.gituse.service.UserService;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.CircleBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IteratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.querydsl.QPageRequest;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +31,7 @@ import java.util.Optional;
  * @date 2019/6/14 21:48
  */
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
 
@@ -192,10 +196,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserJpaSecificationDao userJpaSecificationDao;
 
-    public void i() {
+    @Override
+    public UserVO userSpecQuery(User param) {
 
         // 用于封装查询条件
         Specification<User> spec = new Specification<User>() {
+
             /**
              *
              * @param root  查询对象的属性封装
@@ -208,20 +214,57 @@ public class UserServiceImpl implements UserService {
                                          CriteriaQuery<?> query,
                                          CriteriaBuilder criteriaBuilder) {
 
-                return null;
+                Path<String> age = root.get("age");
+                Path<String> name = root.get("name");
+
+                List<Predicate> list = new ArrayList<Predicate>();
+
+                list.add(criteriaBuilder.equal(age, param.getAge()));
+                list.add(criteriaBuilder.like(name, "%" + param.getName()));
+
+                Predicate[] arr = new Predicate[list.size()];
+
+                Predicate[] predicates = list.toArray(arr);
+
+                if (param.getAge() > 30) {
+                    return criteriaBuilder.or(criteriaBuilder.and(list.toArray(arr)));
+                } else if (param.getAge() > 20) {
+                    Path<String> city = root.get("city");
+                    list.add(criteriaBuilder.notLike(city, "%" + param.getCity()));
+                    Predicate[] arr2 = new Predicate[3];
+                    arr2[0] = list.get(1);
+                    arr2[1] = list.get(0);
+                    arr2[2] = list.get(2);
+
+                    return criteriaBuilder.or(criteriaBuilder.and(arr2[1], arr2[2]), arr2[1], criteriaBuilder.and(arr2[0], arr2[1]));
+                }else if (param.getAge() > 10) {
+                    return criteriaBuilder.and(predicates);
+                } else {
+                    return criteriaBuilder.or(criteriaBuilder.and(predicates[0]));
+                }
             }
         };
-        userJpaSecificationDao.findAll(spec);
+        Sort sort = new Sort(Sort.Direction.DESC, "age");
+        Pageable pageable = new PageRequest(0, 2, sort);
+        Page<User> page = userJpaSecificationDao.findAll(spec, pageable);
+
+
+        // 重新包装成vo对象返回
+        UserVO vo = new UserVO();
+        vo.setUsers(page.getContent());
+        vo.setTotalE(page.getTotalElements());
+        vo.setTotalPage(page.getTotalPages());
+
+        return vo;
+        // return result;
+
+
+        // userJpaSecificationDao.findAll(spec);
     }
 
 
-    public void insertOneToMany() {
-        User user = new User();
+    public void insertOneToMany(User user) {
 
-        user.setId(88888);
-        user.setName("pppp");
-        user.setAddress("beijin");
-        user.setAge(136);
 
         Role role = new Role();
         role.setName("vip");
@@ -229,8 +272,36 @@ public class UserServiceImpl implements UserService {
         role.getUsers().add(user);
         user.setRole(role);
 
-
         this.userJpaResposityDao.save(user);
     }
+
+    @Override
+    public List<User> testLaszy() {
+        List<User> all = userJpaResposityDao.findAll();
+        return all;
+    }
+
+    @Override
+    public List<User> testNoneLaszy() {
+
+        List<User> all = userJpaResposityDao.findAll();
+
+        for (User user : all) {
+            log.info("user", user.getRole());
+        }
+        return all;
+    }
+
+    @Override
+    public User findUserAndOrder(Integer id) {
+        Optional<User> byId = userJpaResposityDao.findById(id);
+        User user = byId.get();
+
+        Role role = user.getRole();
+        log.info("role", role);
+        return user;
+    }
+
+
 }
     

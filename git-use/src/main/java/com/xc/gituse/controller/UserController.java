@@ -108,10 +108,34 @@ public class UserController {
         return userService.listUserByJpaOrder(dto.getProperties());
     }
 
-    @RequestMapping("/insertOneToMany")
-    public void insertOneToMany() {
 
-        userService.insertOneToMany();
+
+    @RequestMapping("/insertOneToMany")
+    public void insertOneToMany(User user) {
+
+        userService.insertOneToMany(user);
+    }
+
+
+    @RequestMapping("/testLaszy")
+    public List<User> testLaszy() {
+        return userService.testLaszy();
+    }
+
+    @RequestMapping("/testNoneLaszy")
+    public List<User> testNoneLaszy() {
+        return userService.testNoneLaszy();
+    }
+
+    @RequestMapping("/findUserAndOrder")
+    public User findUserAndOrder(Integer id) {
+        return userService.findUserAndOrder(id);
+    }
+
+
+    @RequestMapping("/userSpecQuery")
+    public  UserVO userSpecQuery(User param) {
+        return userService.userSpecQuery(param);
     }
 
 }

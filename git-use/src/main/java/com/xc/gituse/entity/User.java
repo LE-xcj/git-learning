@@ -2,6 +2,7 @@ package com.xc.gituse.entity;
 
 import lombok.Data;
 import lombok.ToString;
+import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
 
@@ -36,12 +37,10 @@ public class User {
     @Column(name = "address")
     private String address;
 
-    @Column(name = "rid")
-    private Integer rid;
 
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "id", referencedColumnName = "id")
+    @ManyToOne(cascade = CascadeType.ALL, fetch=FetchType.LAZY)
+    @JoinColumn(name = "rid")
     private Role role;
 
 }

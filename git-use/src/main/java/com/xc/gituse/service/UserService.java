@@ -38,6 +38,11 @@ public interface UserService {
     List<User> listUserByJpaOrder(List<String> properties);
 
 
-    void insertOneToMany();
+    void insertOneToMany(User user);
+    List<User> testLaszy();
+    List<User> testNoneLaszy();
+    User findUserAndOrder(Integer id);
+
+    UserVO userSpecQuery(User param);
 }
     
